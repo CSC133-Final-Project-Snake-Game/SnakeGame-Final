@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
 class SnakeGame extends SurfaceView implements Runnable{
 
     // Objects for the game loop/thread
@@ -59,6 +60,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private Apple mApple;
     private List<Consumable> consumables = new ArrayList<>();
     private int blockSize;
+
 
     // This is the constructor method that gets called
     // from SnakeActivity
@@ -330,15 +332,27 @@ class SnakeGame extends SurfaceView implements Runnable{
         pauseButton = new Rect(pauseButtonPadding, pauseButtonPadding, pauseButtonWidth + pauseButtonPadding, pauseButtonHeight + pauseButtonPadding);
     }
 
+    // adding error handling for resource loading
     private void initializeBackGroundImage(Context context, Point size){
-        mBackground= BitmapFactory.decodeResource(context.getResources(), R.drawable.grass);
-        mBackground = Bitmap.createScaledBitmap(mBackground, size.x, size.y, false);
+        try {
+            mBackground= BitmapFactory.decodeResource(context.getResources(), R.drawable.grass);
+            mBackground = Bitmap.createScaledBitmap(mBackground, size.x, size.y, false);
+        } catch (Exception e) {
+            // Handle error loading background image
+            e.printStackTrace();
+        }
     }
 
     private void initializeTextFont(Context context){
-        mCustomFont = ResourcesCompat.getFont(context, R.font.cookie_crisp);
-        mPaint.setTypeface(mCustomFont);
+        try {
+            mCustomFont = ResourcesCompat.getFont(context, R.font.cookie_crisp);
+            mPaint.setTypeface(mCustomFont);
+        } catch (Exception e) {
+            // Handle error loading custom font
+            e.printStackTrace();
+        }
     }
+
 
     private void callConstructorObjects(Context context){
         mApple = new Apple(context,
