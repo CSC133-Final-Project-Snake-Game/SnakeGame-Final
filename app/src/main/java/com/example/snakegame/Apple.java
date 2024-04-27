@@ -19,4 +19,6 @@ class Apple extends Consumable {
     public void playSound() {
         soundManager.playEatSound();
     }
+
+    public void applyEffect(SnakeGame game){}
 }

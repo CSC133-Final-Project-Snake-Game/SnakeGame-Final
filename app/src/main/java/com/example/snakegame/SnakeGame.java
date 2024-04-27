@@ -24,6 +24,8 @@ import androidx.core.content.res.ResourcesCompat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Iterator;
+
 
 class SnakeGame extends SurfaceView implements Runnable{
 
@@ -39,6 +41,14 @@ class SnakeGame extends SurfaceView implements Runnable{
 
     // for playing sound effects
     private SoundManager soundManager;
+
+    // Movement speed for the snake
+    private float normalSpeed = 1.0f;
+    private float boostedSpeed = 2.0f;
+    private float speedMultiplier = normalSpeed;
+    private boolean isSpeedBoosted = false;
+    private long speedBoostEndTime = 0;
+
     // The size in segments of the playable area
     private final int NUM_BLOCKS_WIDE = 40;
     private int mNumBlocksHigh;
@@ -58,6 +68,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     // And an apple
     private Apple mApple;
     private List<Consumable> consumables = new ArrayList<>();
+    private List<Buff> activeBuffs = new ArrayList<>();
     private int blockSize;
 
     // This is the constructor method that gets called
@@ -87,6 +98,11 @@ class SnakeGame extends SurfaceView implements Runnable{
         // reset the snake
         mSnake.reset(NUM_BLOCKS_WIDE, mNumBlocksHigh);
 
+        // reset movement speed back to default 1.0f
+        speedMultiplier = normalSpeed;
+        isSpeedBoosted = false;
+        clearBuffs();
+
         consumables.clear();
         // Get the apple ready for dinner
         mApple.spawn();
@@ -111,10 +127,19 @@ class SnakeGame extends SurfaceView implements Runnable{
                 // Update 10 times a second
                 if (updateRequired()) {
                     update();
+                    checkBuffs();
+//                    checkSpeedBoostTimer();
                 }
             }
 
             draw();
+        }
+    }
+
+    public void checkSpeedBoostTimer(){
+        if (isSpeedBoosted && System.currentTimeMillis() > speedBoostEndTime) {
+            speedMultiplier = normalSpeed; // Revert movement speed back to normal
+            isSpeedBoosted = false;
         }
     }
 
@@ -126,21 +151,62 @@ class SnakeGame extends SurfaceView implements Runnable{
         // There are 1000 milliseconds in a second
         final long MILLIS_PER_SECOND = 1000;
 
-        // Are we due to update the frame
+        final long framePeriod = (long) ((MILLIS_PER_SECOND / TARGET_FPS) / speedMultiplier);
+
         if (mNextFrameTime <= System.currentTimeMillis()) {
-            // Tenth of a second has passed
-
-            // Setup when the next update will be triggered
-            mNextFrameTime = System.currentTimeMillis()
-                    + MILLIS_PER_SECOND / TARGET_FPS;
-
-            // Return true so that the update and draw
-            // methods are executed
+            mNextFrameTime = System.currentTimeMillis() + framePeriod;
             return true;
         }
-
         return false;
     }
+
+    public void increaseSpeed() {
+        Buff existingBoost = null;
+        for (Buff buff : activeBuffs) {
+            if (buff.type == Buff.Type.SPEED_BOOST) {
+                existingBoost = buff;
+                break;
+            }
+        }
+
+        if (existingBoost != null) {
+            existingBoost.refreshDuration(5000);
+            soundManager.refreshSpeedBoostSound();
+        } else {
+            // No active speed boost, so add a new one
+            Buff speedBoost = new Buff(Buff.Type.SPEED_BOOST, 5000);
+            activeBuffs.add(speedBoost);
+            soundManager.playSpeedBoostSound();
+        }
+        speedMultiplier = boostedSpeed;
+    }
+
+
+    public void checkBuffs() {
+        boolean speedBoostActive = false;
+        Iterator<Buff> iterator = activeBuffs.iterator();
+        while (iterator.hasNext()) {
+            Buff buff = iterator.next();
+            if (!buff.isActive()) {
+                if (buff.type == Buff.Type.SPEED_BOOST && speedMultiplier == boostedSpeed) {
+                    speedMultiplier = normalSpeed;  // Reset speed to normal
+                    soundManager.stopSpeedBoostSound();
+                }
+                iterator.remove();  // Remove the expired buff
+                continue;
+            }
+            if (buff.type == Buff.Type.SPEED_BOOST) {
+                speedBoostActive = true;
+            }
+        }
+
+        if (!speedBoostActive && isSpeedBoosted) {
+            isSpeedBoosted = false;
+            speedMultiplier = normalSpeed;
+            soundManager.stopSpeedBoostSound();
+        }
+    }
+
 
 
     // Update all the game objects
@@ -158,6 +224,7 @@ class SnakeGame extends SurfaceView implements Runnable{
                 mScore += consumable.value;
 
                 consumable.playSound();
+                consumable.applyEffect(this);
                 consumedItems.add(consumable);
 
                 if (consumable.value > 0) {
@@ -180,6 +247,10 @@ class SnakeGame extends SurfaceView implements Runnable{
                     BadApple badApple = new BadApple(getContext(), new Point(NUM_BLOCKS_WIDE, mNumBlocksHigh), blockSize, soundManager);
                     badApple.spawn();
                     newItems.add(badApple);
+
+                    SpeedBooster speedApple = new SpeedBooster(getContext(), new Point(NUM_BLOCKS_WIDE, mNumBlocksHigh), blockSize, soundManager);
+                    speedApple.spawn();
+                    newItems.add(speedApple);
                 }
             }
         }
@@ -189,6 +260,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         // Did the snake die?
         if (mSnake.detectDeath()) {
             // Pause the game ready to start again
+            soundManager.pauseAllSounds();
+            clearBuffs();
             soundManager.playDeathSound();
 
             mPaused = true;
@@ -215,6 +288,19 @@ class SnakeGame extends SurfaceView implements Runnable{
             drawGameObjects(mCanvas);
             // Draw some text while paused
             drawPauseMessage(mCanvas);
+
+            if (!mPaused){
+                // Display active buffs
+                mPaint.setColor(Color.YELLOW);
+                mPaint.setTextSize(75);
+                int yPosition = 75; // Start drawing buffs from this vertical position
+                for (Buff buff : activeBuffs) {
+                    long timeLeft = (buff.startTime + buff.duration - System.currentTimeMillis()) / 1000;
+                    mCanvas.drawText(buff.type.name() + " Active! Time left: " + timeLeft + "s", 800, yPosition, mPaint);
+                    yPosition += 50; // Increment position for next buff
+                }
+            }
+
             // Unlock the mCanvas and reveal the graphics for this frame
             mSurfaceHolder.unlockCanvasAndPost(mCanvas);
         }
@@ -231,10 +317,16 @@ class SnakeGame extends SurfaceView implements Runnable{
                 //Detect if button is clicked
                 if (pauseButton.contains(x, y)) {
                    mPaused = !mPaused;
+                   if (mPaused) {
+                       soundManager.pauseAllSounds();
+                   }else {
+                       soundManager.resumeAllSounds();
+                   }
                    return true;
                 }
                 if (mPaused) {
                     mPaused = false;
+                    soundManager.pauseAllSounds();
                     if (isNewGame) {
                         newGame();
                         isNewGame = false;
@@ -253,6 +345,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         mPlaying = false;
         try {
             mThread.join();
+            clearBuffs();
+            soundManager.pauseAllSounds();
         } catch (InterruptedException e) {
             // Error
         }
@@ -263,6 +357,16 @@ class SnakeGame extends SurfaceView implements Runnable{
         mPlaying = true;
         mThread = new Thread(this);
         mThread.start();
+        soundManager.resumeAllSounds();
+    }
+
+    private void clearBuffs() {
+        for (Buff buff : activeBuffs) {
+            if (buff.type == Buff.Type.SPEED_BOOST) {
+                soundManager.stopSpeedBoostSound();
+            }
+        }
+        activeBuffs.clear();
     }
 
     private void drawbackground(Canvas canvas) {

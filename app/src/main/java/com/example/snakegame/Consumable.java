@@ -46,4 +46,6 @@ abstract class Consumable implements SoundEffect{
         canvas.drawBitmap(mBitmap, location.x * mSize, location.y * mSize, paint);
     }
 
+    abstract void applyEffect(SnakeGame game);
+
 }
