@@ -34,8 +34,10 @@ class SnakeGame extends SurfaceView implements Runnable{
     // Is the game currently playing and or paused?
     private volatile boolean mPlaying = false;
     private volatile boolean mPaused = true;
+    private volatile boolean mpauseMenu = false;
     private boolean isNewGame = true;
     private Rect pauseButton;
+    private Rect pauseMenu;
 
     // for playing sound effects
     private SoundManager soundManager;
@@ -75,6 +77,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         callConstructorObjects(context);
         //initialize for pause button
         initializePauseButton();
+        // initialize for pause menu
+        initializePauseMenu();
         //initialize for the background image
         initializeBackGroundImage(context,size);
         //initialize text font
@@ -215,6 +219,8 @@ class SnakeGame extends SurfaceView implements Runnable{
             drawGameObjects(mCanvas);
             // Draw some text while paused
             drawPauseMessage(mCanvas);
+            // draw pause menu while paused
+            drawPauseMenu(mCanvas);
             // Unlock the mCanvas and reveal the graphics for this frame
             mSurfaceHolder.unlockCanvasAndPost(mCanvas);
         }
@@ -297,6 +303,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
     private void drawPauseMessage(Canvas canvas) {
         if (mPaused) {
+            mpauseMenu = !mpauseMenu;
 
             // Set the size and color of the mPaint for the text
             mPaint.setColor(Color.argb(255, 255, 255, 255));
@@ -307,6 +314,15 @@ class SnakeGame extends SurfaceView implements Runnable{
 
             // Draw the message
             mCanvas.drawText(message, 200, 700, mPaint);
+        }
+    }
+    
+    private void drawPauseMenu(Canvas canvas) {
+        if (mpauseMenu) {
+            // draws black pause rectangle 
+            mPaint.setColor(Color.BLACK);
+            mCanvas.drawRect(pauseMenu, mPaint);
+            mpauseMenu = !mpauseMenu;
         }
     }
 
@@ -328,6 +344,13 @@ class SnakeGame extends SurfaceView implements Runnable{
         int pauseButtonHeight = 100;
         int pauseButtonPadding = 30;
         pauseButton = new Rect(pauseButtonPadding, pauseButtonPadding, pauseButtonWidth + pauseButtonPadding, pauseButtonHeight + pauseButtonPadding);
+    }
+
+    private void initializePauseMenu(){ // pause rectangle coordinates
+        int pauseButtonWidth = 1500;
+        int pauseButtonHeight = 500;
+        int pauseButtonPadding = 30;
+        pauseMenu = new Rect(750, 50, pauseButtonWidth + pauseButtonPadding, pauseButtonHeight - pauseButtonPadding);
     }
 
     private void initializeBackGroundImage(Context context, Point size){
