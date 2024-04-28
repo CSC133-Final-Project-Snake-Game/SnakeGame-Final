@@ -60,6 +60,12 @@ class SnakeGame extends SurfaceView implements Runnable{
     private List<Consumable> consumables = new ArrayList<>();
     private int blockSize;
 
+    // Variables for the colored rectangles
+    private Rect greenColorRect;
+    private Rect blueColorRect;
+    private Rect yellowColorRect;
+    private Rect redColorRect;
+
     // This is the constructor method that gets called
     // from SnakeActivity
     public SnakeGame(Context context, Point size) {
@@ -79,6 +85,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         initializeBackGroundImage(context,size);
         //initialize text font
         initializeTextFont(context);
+        //initialize color choice rectangles
+        initializeColorRect(size);
     }
 
     // Called to start a new game
@@ -215,9 +223,66 @@ class SnakeGame extends SurfaceView implements Runnable{
             drawGameObjects(mCanvas);
             // Draw some text while paused
             drawPauseMessage(mCanvas);
+
+            // If game paused, draw the text and rectangles
+            if(mPaused) {
+                // Draw the text "Snake Color" above the green color rectangle
+                mPaint.setColor(Color.WHITE); // Set the color for the text
+                mPaint.setTextSize(50); // Set the text size
+                String snakeColorText = "Snake Color";
+                float textWidth = mPaint.measureText(snakeColorText); // Measure the width of the text
+                float x = greenColorRect.centerX() - (textWidth / 2); // Calculate the x coordinate for centering the text
+                float y = greenColorRect.top - 20; // Set the y coordinate above the rectangle
+                mCanvas.drawText(snakeColorText, x, y, mPaint); // Draw the text
+
+                // Draw the green color rectangle
+                mPaint.setColor(Color.GREEN); // Set the color for the  rectangle
+                mCanvas.drawRect(greenColorRect, mPaint); // Draw the rectangle
+
+                // Draw the blue color rectangle below the green one
+                mPaint.setColor(Color.BLUE);
+                mCanvas.drawRect(blueColorRect, mPaint);
+
+                // Draw the yellow color rectangle below the blue one
+                mPaint.setColor(Color.YELLOW);
+                mCanvas.drawRect(yellowColorRect, mPaint);
+
+                // Draw the red color rectangle below the yellow one
+                mPaint.setColor(Color.RED);
+                mCanvas.drawRect(redColorRect, mPaint);
+            }
             // Unlock the mCanvas and reveal the graphics for this frame
             mSurfaceHolder.unlockCanvasAndPost(mCanvas);
         }
+    }
+
+    // Method to get the Snake object
+    public Snake getSnake() {
+        return mSnake;
+    }
+
+    private void initializeColorRect(Point screenSize) {
+        // Calculate the coordinates for the top-right corner
+        int rectWidth = 200; // Width of the rectangle
+        int rectHeight = 100; // Height of the rectangle
+        int padding = 100; // Padding from the screen edges
+
+        int left = screenSize.x - rectWidth - padding; // Left coordinate of the rectangle
+        int top = padding; // Top coordinate of the rectangle
+        int right = screenSize.x - padding; // Right coordinate of the rectangle
+        int bottom = rectHeight + padding; // Bottom coordinate of the rectangle
+
+        // Initialize the green rectangle
+        greenColorRect = new Rect(left, top, right, bottom);
+
+        // Initialize the blue rectangle below the green one
+        blueColorRect = new Rect(left, bottom + padding, right, bottom + padding + rectHeight);
+
+        // Initialize the yellow rectangle below the blue one
+        yellowColorRect = new Rect(left, blueColorRect.bottom + padding, right, blueColorRect.bottom + padding + rectHeight);
+
+        // Initialize the red rectangle below the yellow one
+        redColorRect = new Rect(left, yellowColorRect.bottom + padding, right, yellowColorRect.bottom + padding + rectHeight);
     }
 
     @Override
@@ -227,6 +292,31 @@ class SnakeGame extends SurfaceView implements Runnable{
 
                 int x = (int) motionEvent.getX();
                 int y = (int) motionEvent.getY();
+
+                // If game paused, allow colored rectangles to be clicked
+                if(mPaused) {
+                    // Example: Assuming there's a rectangle on the screen representing the green color selection area
+                    if (greenColorRect.contains(x, y)) {
+                        // Change snake color to green
+                        mSnake.setSnakeColor(getContext(), Snake.SnakeColor.GREEN);
+                        return true;
+                    }
+                    if (blueColorRect.contains(x, y)) {
+                        // Change snake color to green
+                        mSnake.setSnakeColor(getContext(), Snake.SnakeColor.BLUE);
+                        return true;
+                    }
+                    if (yellowColorRect.contains(x, y)) {
+                        // Change snake color to green
+                        mSnake.setSnakeColor(getContext(), Snake.SnakeColor.YELLOW);
+                        return true;
+                    }
+                    if (redColorRect.contains(x, y)) {
+                        // Change snake color to green
+                        mSnake.setSnakeColor(getContext(), Snake.SnakeColor.RED);
+                        return true;
+                    }
+                }
 
                 //Detect if button is clicked
                 if (pauseButton.contains(x, y)) {
@@ -349,6 +439,6 @@ class SnakeGame extends SurfaceView implements Runnable{
         mSnake = new Snake(context,
                 new Point(NUM_BLOCKS_WIDE,
                         mNumBlocksHigh),
-                blockSize);
+                blockSize, Snake.SnakeColor.GREEN);
     }
 }

@@ -27,6 +27,9 @@ public class SnakeActivity extends Activity {
 
         // Make snakeEngine the view of the Activity
         setContentView(mSnakeGame);
+
+        // set the initial snake color here
+        mSnakeGame.getSnake().setSnakeColor(this, Snake.SnakeColor.GREEN);
     }
 
     // Start the thread in snakeEngine
