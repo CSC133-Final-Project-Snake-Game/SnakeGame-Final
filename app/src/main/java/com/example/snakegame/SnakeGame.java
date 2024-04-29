@@ -37,7 +37,10 @@ class SnakeGame extends SurfaceView implements Runnable{
     private volatile boolean mpauseMenu = false;
     private boolean isNewGame = true;
     private Rect pauseButton;
+    private Rect Line;
     private Rect pauseMenu;
+    private Rect pauseMenuResume;
+    private Rect pauseMenuQuit;
 
     // for playing sound effects
     private SoundManager soundManager;
@@ -53,6 +56,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private SurfaceHolder mSurfaceHolder;
     private Paint mPaint;
     private Bitmap mBackground;
+    private Bitmap mStart;
     private Typeface mCustomFont;
 
     // A snake ssss
@@ -79,6 +83,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         initializePauseButton();
         // initialize for pause menu
         initializePauseMenu();
+        // initialize for pause menu buttons
+        initializeStartMenuImage(context, size);
         //initialize for the background image
         initializeBackGroundImage(context,size);
         //initialize text font
@@ -217,10 +223,12 @@ class SnakeGame extends SurfaceView implements Runnable{
             drawPause(mCanvas);
             //Draw the apple and snake
             drawGameObjects(mCanvas);
-            // Draw some text while paused
-            drawPauseMessage(mCanvas);
             // draw pause menu while paused
             drawPauseMenu(mCanvas);
+            // Draw some text while paused
+            drawPauseMessage(mCanvas);
+            // Added the start menu image
+            drawStartMenu(mCanvas);
             // Unlock the mCanvas and reveal the graphics for this frame
             mSurfaceHolder.unlockCanvasAndPost(mCanvas);
         }
@@ -246,6 +254,9 @@ class SnakeGame extends SurfaceView implements Runnable{
                         isNewGame = false;
                     }
                     return true;
+                }
+                if(mPaused && pauseMenuResume.contains(x, y)) {
+                    mPaused = !mPaused;
                 }
 
                 mSnake.switchHeading(motionEvent);
@@ -275,6 +286,12 @@ class SnakeGame extends SurfaceView implements Runnable{
         canvas.drawBitmap(mBackground,0,0,null);
     }
 
+    private void drawStartMenu (Canvas canvas) {
+        if (isNewGame) {
+            canvas.drawBitmap(mStart, 0, 0, null);
+        }
+    }
+
     private void drawSetText(Canvas canvas){
         mPaint.setTypeface(mCustomFont);
         mPaint.setColor(Color.argb(255, 255, 255, 255));
@@ -287,7 +304,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     }
 
     private void drawPause(Canvas canvas){
-        mPaint.setColor(Color.WHITE);
+        mPaint.setColor(Color.argb(200, 255, 255, 255));
         mCanvas.drawRect(pauseButton, mPaint);
     }
 
@@ -313,15 +330,31 @@ class SnakeGame extends SurfaceView implements Runnable{
             String message = isNewGame ? getResources().getString(R.string.tap_to_play) : "Game Paused";
 
             // Draw the message
-            mCanvas.drawText(message, 200, 700, mPaint);
+            mCanvas.drawText(message, 400, 300, mPaint);
         }
     }
     
-    private void drawPauseMenu(Canvas canvas) {
-        if (mpauseMenu) {
-            // draws black pause rectangle 
-            mPaint.setColor(Color.BLACK);
+    private void drawPauseMenu (Canvas canvas) {
+        if (mpauseMenu && !isNewGame) {
+            // draws transparent black pause rectangle
+            mPaint.setColor(Color.argb(200, 0, 0, 0));
             mCanvas.drawRect(pauseMenu, mPaint);
+            // draws line under 'game paused'
+            mPaint.setColor(Color.argb(255, 255, 255, 255));
+            mCanvas.drawRect(Line,mPaint);
+
+            // draws resume button
+            mPaint.setColor(Color.argb(200, 255, 255, 255));
+            mCanvas.drawRect(pauseMenuResume, mPaint);
+            mPaint.setColor(Color.BLACK);
+            mCanvas.drawText("Resume",500, 700, mPaint);
+
+            // draws quit button
+            mPaint.setColor(Color.argb(200, 255, 255, 255));
+            mCanvas.drawRect(pauseMenuQuit, mPaint);
+            mPaint.setColor(Color.BLACK);
+            mCanvas.drawText("Quit",1200, 700, mPaint);
+
             mpauseMenu = !mpauseMenu;
         }
     }
@@ -346,14 +379,34 @@ class SnakeGame extends SurfaceView implements Runnable{
         pauseButton = new Rect(pauseButtonPadding, pauseButtonPadding, pauseButtonWidth + pauseButtonPadding, pauseButtonHeight + pauseButtonPadding);
     }
 
-    private void initializePauseMenu(){ // pause rectangle coordinates
-        int pauseButtonWidth = 1500;
-        int pauseButtonHeight = 500;
-        int pauseButtonPadding = 30;
-        pauseMenu = new Rect(750, 50, pauseButtonWidth + pauseButtonPadding, pauseButtonHeight - pauseButtonPadding);
+    private void initializePauseMenu(){ // pause menu and its buttons
+        int pauseMenuWidth = 1800;
+        int pauseMenuHeight = 900;
+        int pauseButtonPadding = 100;
+        pauseMenu = new Rect(250, 50, pauseMenuWidth, pauseMenuHeight);
+
+        int pauseLineWidth = 1600;
+        int pauseLineHeight = 100;
+        int pauseLinePadding = 300;
+        Line = new Rect(400, 375, pauseLineWidth, pauseLineHeight + pauseLinePadding);
+
+        int pauseResumeWidth = 850;
+        int pauseResumeHeight = 700;
+        int pauseResumePadding = 100;
+        pauseMenuResume = new Rect(400, 500, pauseResumeWidth + pauseResumePadding, pauseResumeHeight + pauseResumePadding);
+
+        int pauseQuitWidth = 1500;
+        int pauseQuitHeight = 700;
+        int pauseQuitPadding = 100;
+        pauseMenuQuit = new Rect(1000, 500, pauseQuitWidth + pauseQuitPadding, pauseQuitHeight + pauseQuitPadding);
     }
 
-    private void initializeBackGroundImage(Context context, Point size){
+    private void initializeStartMenuImage(Context context, Point size) {
+        mStart = BitmapFactory.decodeResource(context.getResources(), R.drawable.start_menu);
+        mStart = Bitmap.createScaledBitmap(mStart, size.x, size.y, false);
+    }
+
+    private void initializeBackGroundImage(Context context, Point size) {
         mBackground= BitmapFactory.decodeResource(context.getResources(), R.drawable.grass);
         mBackground = Bitmap.createScaledBitmap(mBackground, size.x, size.y, false);
     }
