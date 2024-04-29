@@ -61,6 +61,9 @@ class SnakeGame extends SurfaceView implements Runnable{
     private List<Consumable> consumables = new ArrayList<>();
     private int blockSize;
 
+    // gameover
+    private boolean gameOver = false;
+
 
     // This is the constructor method that gets called
     // from SnakeActivity
@@ -217,6 +220,11 @@ class SnakeGame extends SurfaceView implements Runnable{
             drawGameObjects(mCanvas);
             // Draw some text while paused
             drawPauseMessage(mCanvas);
+            // calling gameover
+            if (gameOver) {
+                drawGameOverText(mCanvas);
+            }
+
             // Unlock the mCanvas and reveal the graphics for this frame
             mSurfaceHolder.unlockCanvasAndPost(mCanvas);
         }
@@ -365,4 +373,20 @@ class SnakeGame extends SurfaceView implements Runnable{
                         mNumBlocksHigh),
                 blockSize);
     }
+
+    // adding gameover
+    private void gameOver() {
+        // Stop the game
+        mPlaying = false;
+        // Set game over state
+        gameOver = true;
+        // Pause the game
+        pause();
+    }
+    private void drawGameOverText(Canvas canvas) {
+        mPaint.setColor(Color.RED);
+        mPaint.setTextSize(100);
+        canvas.drawText("Game Over", 200, 500, mPaint);
+    }
+
 }
