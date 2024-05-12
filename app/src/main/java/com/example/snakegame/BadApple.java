@@ -21,4 +21,6 @@ class BadApple extends Consumable {
     public void playSound() {
         soundManager.playBadSound();
     }
+
+    public void applyEffect(SnakeGame game){}
 }
