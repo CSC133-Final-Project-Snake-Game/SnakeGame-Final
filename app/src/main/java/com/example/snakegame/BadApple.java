@@ -6,7 +6,6 @@ import android.graphics.Point;
 import android.media.SoundPool;
 
 class BadApple extends Consumable {
-
     public BadApple(Context context, Point spawnRange, int size, SoundManager soundManager) {
         super(context, spawnRange, size, -1,soundManager);
 
@@ -21,4 +20,6 @@ class BadApple extends Consumable {
     public void playSound() {
         soundManager.playBadSound();
     }
+
+    public void applyEffect(SnakeGame game){}
 }

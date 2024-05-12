@@ -39,7 +39,23 @@ class Snake {
     // A bitmap for the body
     private Bitmap mBitmapBody;
 
-    Snake(Context context, Point mr, int ss) {
+    // Enum to represent snake colors
+    public enum SnakeColor {
+        GREEN,
+        BLUE,
+        YELLOW,
+        RED
+    }
+
+    private SnakeColor snakeColor;
+
+    Snake(Context context, Point mr, int ss, SnakeColor color) {
+
+        // Initialize snake color
+        this.snakeColor = color;
+
+        // Load snake images based on the selected color
+        loadSnakeImages(context, ss);
 
         // Initialize our ArrayList
         segmentLocations = new ArrayList<>();
@@ -64,6 +80,50 @@ class Snake {
         // The halfway point across the screen in pixels
         // Used to detect which side of screen was pressed
         halfWayPoint = mr.x * ss / 2;
+    }
+
+    // Method to load snake images based on the selected color
+    private void loadSnakeImages(Context context, int ss) {
+        // Determine which snake images to load based on the selected color
+        int bodyResourceId;
+        int headResourceId;
+        switch (snakeColor) {
+            case GREEN:
+                bodyResourceId = R.drawable.bodygreen;
+                headResourceId = R.drawable.headgreen;
+                break;
+            case BLUE:
+                bodyResourceId = R.drawable.bodyblue;
+                headResourceId = R.drawable.headblue;
+                break;
+            case YELLOW:
+                bodyResourceId = R.drawable.bodyyellow;
+                headResourceId = R.drawable.headyellow;
+                break;
+            case RED:
+                bodyResourceId = R.drawable.bodyred;
+                headResourceId = R.drawable.headred;
+                break;
+            default:
+                // Default to green color
+                bodyResourceId = R.drawable.bodygreen;
+                headResourceId = R.drawable.headgreen;
+                break;
+        }
+
+        // Load and scale the snake images
+        mBitmapHead = BitmapFactory.decodeResource(context.getResources(), headResourceId);
+        mBitmapHead = Bitmap.createScaledBitmap(mBitmapHead, ss, ss, false);
+
+        mBitmapBody = BitmapFactory.decodeResource(context.getResources(), bodyResourceId);
+        mBitmapBody = Bitmap.createScaledBitmap(mBitmapBody, ss, ss, false);
+    }
+
+    // Method to allow changing snake color dynamically
+    public void setSnakeColor(Context context, SnakeColor color) {
+        this.snakeColor = color;
+        // Reload snake images with the new color
+        loadSnakeImages(context, mSegmentSize);
     }
 
     private Bitmap getRotatedBitmap(Bitmap original, float degrees) {
