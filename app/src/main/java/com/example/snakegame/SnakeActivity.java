@@ -22,24 +22,24 @@ public class SnakeActivity extends Activity {
         Point size = new Point();
         display.getSize(size);
 
-        // Create a new instance of the SnakeEngine class
+        // Create a new instance of the SnakeGame class
         mSnakeGame = new SnakeGame(this, size);
 
-        // Make snakeEngine the view of the Activity
+        // Make snakeGame the view of the Activity
         setContentView(mSnakeGame);
 
         // set the initial snake color here
         mSnakeGame.getSnake().setSnakeColor(this, Snake.SnakeColor.GREEN);
     }
 
-    // Start the thread in snakeEngine
+    // Start the thread in snakeGame
     @Override
     protected void onResume() {
         super.onResume();
         mSnakeGame.resume();
     }
 
-    // Stop the thread in snakeEngine
+    // Stop the thread in snakeGame
     @Override
     protected void onPause() {
         super.onPause();

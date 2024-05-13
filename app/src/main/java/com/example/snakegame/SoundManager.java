@@ -13,6 +13,7 @@ import android.os.Looper;
 
 public class SoundManager {
     private SoundPool mSP;
+    private volatile boolean Mute = false;
     private int mEat_ID;
     private int mCrashID;
     private int mbadID;
@@ -63,6 +64,10 @@ public class SoundManager {
         }
     }
 
+    public boolean muteSwitch() {
+        return Mute = !Mute;
+    }
+
     public void pauseAllSounds() {
         mSP.autoPause();
     }
@@ -72,19 +77,31 @@ public class SoundManager {
     }
 
     public void playEatSound(){
-        mSP.play(mEat_ID, 1, 1, 0, 0, 1);
+        if (Mute) {
+            mSP.play(mEat_ID, 0, 0, 0, 0, 1);
+        }
+        else mSP.play(mEat_ID, 1, 1, 0, 0, 1);
     }
 
     public void playDeathSound(){
-        mSP.play(mCrashID,1,1,0,0,1);
+        if (Mute) {
+            mSP.play(mCrashID,0,0,0,0,1);
+        }
+        else mSP.play(mCrashID,1,1,0,0,1);
     }
 
     public void playBadSound(){
-        mSP.play(mbadID, 1, 1, 0, 0, 1);
+        if (Mute) {
+            mSP.play(mbadID,0,0,0,0,1);
+        }
+        else mSP.play(mbadID, 1, 1, 0, 0, 1);
     }
 
     public void playSpeedBoostSound() {
-        if (mSpeedBoostStreamID != 0) {
+        if (Mute) {
+            mSP.play(mSpeedBoostID,0,0,0,0,1);
+        }
+        else if (mSpeedBoostStreamID != 0) {
 
         } else {
             // Start playing the sound since it's not already playing
@@ -115,7 +132,10 @@ public class SoundManager {
             // Reset the loop status
             mSP.setLoop(mSpeedBoostStreamID, 0);
             // Start the sound again
-            mSpeedBoostStreamID = mSP.play(mSpeedBoostID, 1, 1, 0, 0, 1);
+            if (Mute) {
+                mSpeedBoostStreamID = mSP.play(mSpeedBoostID,0,0,0,0,1);
+            } else
+                mSpeedBoostStreamID = mSP.play(mSpeedBoostID, 1, 1, 0, 0, 1);
             mHandler.postDelayed(this::loopSpeedBoostSound, 5000); // Reset the looping mechanism
         }
     }

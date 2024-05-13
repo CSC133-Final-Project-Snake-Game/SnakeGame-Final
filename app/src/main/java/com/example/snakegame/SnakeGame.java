@@ -1,8 +1,6 @@
 package com.example.snakegame;
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,23 +8,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
-import android.media.Image;
-import android.media.SoundPool;
-import android.os.Build;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import java.io.IOException;
 import android.graphics.Rect;
 import androidx.core.content.res.ResourcesCompat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
-
-
 
 class SnakeGame extends SurfaceView implements Runnable{
 
@@ -37,13 +26,15 @@ class SnakeGame extends SurfaceView implements Runnable{
     // Is the game currently playing and or paused?
     private volatile boolean mPlaying = false;
     private volatile boolean mPaused = true;
-    private volatile boolean mpauseMenu = false;
     private boolean isNewGame = true;
+
+    // for pause menu
+    private volatile boolean mpauseMenu = false;
     private Rect pauseButton;
     private Rect Line;
     private Rect pauseMenu;
     private Rect pauseMenuResume;
-    private Rect pauseMenuQuit;
+    private Rect pauseMenuSFX;
 
     // for playing sound effects
     private SoundManager soundManager;
@@ -53,7 +44,6 @@ class SnakeGame extends SurfaceView implements Runnable{
     private float boostedSpeed = 2.0f;
     private float speedMultiplier = normalSpeed;
     private boolean isSpeedBoosted = false;
-    private long speedBoostEndTime = 0;
 
     // The size in segments of the playable area
     private final int NUM_BLOCKS_WIDE = 40;
@@ -79,13 +69,11 @@ class SnakeGame extends SurfaceView implements Runnable{
     private int blockSize;
 
     // Variables for the colored rectangles
+    private Rect blackColorRect;
     private Rect greenColorRect;
     private Rect blueColorRect;
     private Rect yellowColorRect;
     private Rect redColorRect;
-
-    // gameover
-    private boolean gameOver = false;
 
 
     // This is the constructor method that gets called
@@ -151,7 +139,6 @@ class SnakeGame extends SurfaceView implements Runnable{
                 if (updateRequired()) {
                     update();
                     checkBuffs();
-//                    checkSpeedBoostTimer();
                 }
             }
 
@@ -159,12 +146,6 @@ class SnakeGame extends SurfaceView implements Runnable{
         }
     }
 
-    public void checkSpeedBoostTimer(){
-        if (isSpeedBoosted && System.currentTimeMillis() > speedBoostEndTime) {
-            speedMultiplier = normalSpeed; // Revert movement speed back to normal
-            isSpeedBoosted = false;
-        }
-    }
 
     // Check to see if it is time for an update
     public boolean updateRequired() {
@@ -331,17 +312,21 @@ class SnakeGame extends SurfaceView implements Runnable{
 
             // If game paused, draw the text and rectangles
             if(mPaused) {
+                // Draw the black background rectangle
+                mPaint.setColor(Color.argb(200, 0, 0, 0)); // set the color of the rectangle
+                mCanvas.drawRect(blackColorRect, mPaint);
+
                 // Draw the text "Snake Color" above the green color rectangle
                 mPaint.setColor(Color.WHITE); // Set the color for the text
                 mPaint.setTextSize(50); // Set the text size
                 String snakeColorText = "Snake Color";
                 float textWidth = mPaint.measureText(snakeColorText); // Measure the width of the text
                 float x = greenColorRect.centerX() - (textWidth / 2); // Calculate the x coordinate for centering the text
-                float y = greenColorRect.top - 20; // Set the y coordinate above the rectangle
+                float y = greenColorRect.top - 25; // Set the y coordinate above the rectangle
                 mCanvas.drawText(snakeColorText, x, y, mPaint); // Draw the text
 
                 // Draw the green color rectangle
-                mPaint.setColor(Color.GREEN); // Set the color for the  rectangle
+                mPaint.setColor(Color.GREEN); // Set the color for the rectangle
                 mCanvas.drawRect(greenColorRect, mPaint); // Draw the rectangle
 
                 // Draw the blue color rectangle below the green one
@@ -370,11 +355,6 @@ class SnakeGame extends SurfaceView implements Runnable{
                 }
             }
 
-            // calling gameover
-            if (gameOver) {
-                drawGameOverText(mCanvas);
-            }
-
             // Unlock the mCanvas and reveal the graphics for this frame
             mSurfaceHolder.unlockCanvasAndPost(mCanvas);
         }
@@ -389,12 +369,15 @@ class SnakeGame extends SurfaceView implements Runnable{
         // Calculate the coordinates for the top-right corner
         int rectWidth = 200; // Width of the rectangle
         int rectHeight = 100; // Height of the rectangle
-        int padding = 100; // Padding from the screen edges
+        int padding = 120; // Padding from the screen edges
 
         int left = screenSize.x - rectWidth - padding; // Left coordinate of the rectangle
         int top = padding; // Top coordinate of the rectangle
         int right = screenSize.x - padding; // Right coordinate of the rectangle
         int bottom = rectHeight + padding; // Bottom coordinate of the rectangle
+
+        // Initialize black background rectangle
+        blackColorRect = new Rect(1850, 50, 2150, 900);
 
         // Initialize the green rectangle
         greenColorRect = new Rect(left, top, right, bottom);
@@ -419,6 +402,10 @@ class SnakeGame extends SurfaceView implements Runnable{
 
                 // If game paused, allow colored rectangles to be clicked
                 if(mpauseMenu && mPaused) {
+                    if (pauseMenuSFX.contains(x, y)) {
+                        soundManager.muteSwitch();
+                        return true;
+                    }
                     // Example: Assuming there's a rectangle on the screen representing the green color selection area
                     if (greenColorRect.contains(x, y)) {
                         // Change snake color to green
@@ -461,9 +448,12 @@ class SnakeGame extends SurfaceView implements Runnable{
                     }
                     return true;
                 }
-                if(mPaused && pauseMenuResume.contains(x, y)) {
-                    mPaused = !mPaused;
-                }
+                /*if (mPaused) {
+                    if (pauseMenuSFX.contains(x, y)) {
+                        soundManager.muteSwitch();
+                        return true;
+                    }
+                } */
 
                 mSnake.switchHeading(motionEvent);
                 break;
@@ -518,7 +508,6 @@ class SnakeGame extends SurfaceView implements Runnable{
 
     private void drawScoreAndName(Canvas canvas) {
         mCanvas.drawText("" + mScore, 150, 120, mPaint);
-//        mCanvas.drawText("Alexis Dawatan, Wei Chong", 1750, 120, mPaint);
     }
 
     private void drawPause(Canvas canvas){
@@ -569,9 +558,9 @@ class SnakeGame extends SurfaceView implements Runnable{
 
             // draws quit button
             mPaint.setColor(Color.argb(200, 255, 255, 255));
-            mCanvas.drawRect(pauseMenuQuit, mPaint);
+            mCanvas.drawRect(pauseMenuSFX, mPaint);
             mPaint.setColor(Color.BLACK);
-            mCanvas.drawText("Quit",1200, 700, mPaint);
+            mCanvas.drawText("SFX",1200, 700, mPaint);
 
             mpauseMenu = !mpauseMenu;
         }
@@ -600,7 +589,6 @@ class SnakeGame extends SurfaceView implements Runnable{
     private void initializePauseMenu(){ // pause menu and its buttons
         int pauseMenuWidth = 1800;
         int pauseMenuHeight = 900;
-        int pauseButtonPadding = 100;
         pauseMenu = new Rect(250, 50, pauseMenuWidth, pauseMenuHeight);
 
         int pauseLineWidth = 1600;
@@ -616,11 +604,11 @@ class SnakeGame extends SurfaceView implements Runnable{
         int pauseQuitWidth = 1500;
         int pauseQuitHeight = 700;
         int pauseQuitPadding = 100;
-        pauseMenuQuit = new Rect(1000, 500, pauseQuitWidth + pauseQuitPadding, pauseQuitHeight + pauseQuitPadding);
+        pauseMenuSFX = new Rect(1000, 500, pauseQuitWidth + pauseQuitPadding, pauseQuitHeight + pauseQuitPadding);
     }
 
     private void initializeStartMenuImage(Context context, Point size) {
-        mStart = BitmapFactory.decodeResource(context.getResources(), R.drawable.start_menu);
+        mStart = BitmapFactory.decodeResource(context.getResources(), R.drawable.start_menu2);
         mStart = Bitmap.createScaledBitmap(mStart, size.x, size.y, false);
     }
 
@@ -654,21 +642,6 @@ class SnakeGame extends SurfaceView implements Runnable{
                 new Point(NUM_BLOCKS_WIDE,
                         mNumBlocksHigh),
                 blockSize, Snake.SnakeColor.GREEN);
-    }
-
-    // adding gameover
-    private void gameOver() {
-        // Stop the game
-        mPlaying = false;
-        // Set game over state
-        gameOver = true;
-        // Pause the game
-        pause();
-    }
-    private void drawGameOverText(Canvas canvas) {
-        mPaint.setColor(Color.RED);
-        mPaint.setTextSize(100);
-        canvas.drawText("Game Over", 200, 500, mPaint);
     }
 
 }
