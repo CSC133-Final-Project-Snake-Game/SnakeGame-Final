@@ -88,7 +88,6 @@ class SnakeGame extends SurfaceView implements Runnable{
     private Rect blueColorRect;
     private Rect yellowColorRect;
     private Rect redColorRect;
->>>>>>> testBranch
 
     // This is the constructor method that gets called
     // from SnakeActivity
