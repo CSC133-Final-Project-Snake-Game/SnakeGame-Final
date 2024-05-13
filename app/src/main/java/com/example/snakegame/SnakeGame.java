@@ -96,7 +96,7 @@ class SnakeGame extends SurfaceView implements Runnable{
         initializePauseButton();
         // initialize for pause menu
         initializePauseMenu();
-        // initialize for pause menu buttons
+        // initialize for the start image
         initializeStartMenuImage(context, size);
         //initialize for the background image
         initializeBackGroundImage(context,size);
@@ -132,7 +132,7 @@ class SnakeGame extends SurfaceView implements Runnable{
         mNextFrameTime = System.currentTimeMillis();
 
         isNewGame = true;
-
+        isGameOver = false;
     }
 
 
@@ -320,7 +320,7 @@ class SnakeGame extends SurfaceView implements Runnable{
             }
 
             // If game paused, draw the text and rectangles
-            if(mPaused && !isNewGame || newStart) {
+            if(mPaused && !isNewGame || newStart) { 
                 // Draw the black background rectangle
                 mPaint.setColor(Color.argb(200, 0, 0, 0)); // set the color of the rectangle
                 mCanvas.drawRect(blackColorRect, mPaint);
@@ -623,7 +623,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
     private void initializeGameOverImage(Context context, Point size) {
         gOver = BitmapFactory.decodeResource(context.getResources(), R.drawable.game_over);
-        gOver = Bitmap.createScaledBitmap(mStart, size.x, size.y, false);
+        gOver = Bitmap.createScaledBitmap(gOver, size.x, size.y, false);
     }
 
     private void initializeBackGroundImage(Context context, Point size) {
