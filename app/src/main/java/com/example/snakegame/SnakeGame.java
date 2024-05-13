@@ -27,6 +27,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private volatile boolean mPlaying = false;
     private volatile boolean mPaused = true;
     private boolean isNewGame = true;
+    public boolean newStart = true;
 
     // for pause menu
     private volatile boolean mpauseMenu = false;
@@ -105,6 +106,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
     // Called to start a new game
     public void newGame() {
+        newStart = false;
 
         // reset the snake
         mSnake.reset(NUM_BLOCKS_WIDE, mNumBlocksHigh);
@@ -311,7 +313,7 @@ class SnakeGame extends SurfaceView implements Runnable{
             }
 
             // If game paused, draw the text and rectangles
-            if(mPaused) {
+            if(mPaused && !isNewGame || newStart) {
                 // Draw the black background rectangle
                 mPaint.setColor(Color.argb(200, 0, 0, 0)); // set the color of the rectangle
                 mCanvas.drawRect(blackColorRect, mPaint);
@@ -448,12 +450,6 @@ class SnakeGame extends SurfaceView implements Runnable{
                     }
                     return true;
                 }
-                /*if (mPaused) {
-                    if (pauseMenuSFX.contains(x, y)) {
-                        soundManager.muteSwitch();
-                        return true;
-                    }
-                } */
 
                 mSnake.switchHeading(motionEvent);
                 break;
@@ -495,7 +491,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     }
 
     private void drawStartMenu (Canvas canvas) {
-        if (isNewGame) {
+        if (newStart) {
             canvas.drawBitmap(mStart, 0, 0, null);
         }
     }
