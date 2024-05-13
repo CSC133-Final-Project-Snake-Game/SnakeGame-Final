@@ -38,6 +38,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private volatile boolean mPaused = true;
     private volatile boolean mpauseMenu = false;
     private boolean isNewGame = true;
+    private boolean isGameOver = false;
     private Rect pauseButton;
     private Rect Line;
     private Rect pauseMenu;
@@ -67,6 +68,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private Paint mPaint;
     private Bitmap mBackground;
     private Bitmap mStart;
+    private Bitmap gOver;
     private Typeface mCustomFont;
 
     // A snake ssss
@@ -108,6 +110,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         initializeTextFont(context);
         //initialize color choice rectangles
         initializeColorRect(size);
+        //initialize game over screen
+        initializeGameOverImage(context, size);
     }
 
     // Called to start a new game
@@ -285,6 +289,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
             mPaused = true;
             isNewGame = true;
+            isGameOver = true;
         }
 
     }
@@ -311,6 +316,7 @@ class SnakeGame extends SurfaceView implements Runnable{
             drawPauseMessage(mCanvas);
             // Added the start menu image
             drawStartMenu(mCanvas);
+            drawGameOver(mCanvas);
 
             if (!mPaused){
                 // Display active buffs
@@ -329,7 +335,7 @@ class SnakeGame extends SurfaceView implements Runnable{
                 // Draw the text "Snake Color" above the green color rectangle
                 mPaint.setColor(Color.WHITE); // Set the color for the text
                 mPaint.setTextSize(50); // Set the text size
-                String snakeColorText = "Snake Color";
+                String snakeColorText = "Snake Color"   ;
                 float textWidth = mPaint.measureText(snakeColorText); // Measure the width of the text
                 float x = greenColorRect.centerX() - (textWidth / 2); // Calculate the x coordinate for centering the text
                 float y = greenColorRect.top - 20; // Set the y coordinate above the rectangle
@@ -500,6 +506,12 @@ class SnakeGame extends SurfaceView implements Runnable{
         }
     }
 
+    private void drawGameOver(Canvas canvas) {
+        if (isGameOver) {
+            canvas.drawBitmap(gOver, 0, 0, null);
+        }
+    }
+
     private void drawSetText(Canvas canvas){
         mPaint.setTypeface(mCustomFont);
         mPaint.setColor(Color.argb(255, 255, 255, 255));
@@ -612,6 +624,11 @@ class SnakeGame extends SurfaceView implements Runnable{
     private void initializeStartMenuImage(Context context, Point size) {
         mStart = BitmapFactory.decodeResource(context.getResources(), R.drawable.start_menu);
         mStart = Bitmap.createScaledBitmap(mStart, size.x, size.y, false);
+    }
+
+    private void initializeGameOverImage(Context context, Point size) {
+        gOver = BitmapFactory.decodeResource(context.getResources(), R.drawable.game_over);
+        gOver = Bitmap.createScaledBitmap(mStart, size.x, size.y, false);
     }
 
     private void initializeBackGroundImage(Context context, Point size) {
