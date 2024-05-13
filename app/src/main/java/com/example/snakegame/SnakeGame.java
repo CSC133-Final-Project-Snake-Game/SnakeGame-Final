@@ -31,6 +31,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
     // for pause menu
     private volatile boolean mpauseMenu = false;
+    private boolean isGameOver = false;
     private Rect pauseButton;
     private Rect Line;
     private Rect pauseMenu;
@@ -59,6 +60,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private Paint mPaint;
     private Bitmap mBackground;
     private Bitmap mStart;
+    private Bitmap gOver;
     private Typeface mCustomFont;
 
     // A snake ssss
@@ -102,6 +104,8 @@ class SnakeGame extends SurfaceView implements Runnable{
         initializeTextFont(context);
         //initialize color choice rectangles
         initializeColorRect(size);
+        //initialize game over screen
+        initializeGameOverImage(context, size);
     }
 
     // Called to start a new game
@@ -273,6 +277,7 @@ class SnakeGame extends SurfaceView implements Runnable{
 
             mPaused = true;
             isNewGame = true;
+            isGameOver = true;
         }
 
     }
@@ -297,8 +302,10 @@ class SnakeGame extends SurfaceView implements Runnable{
             drawPauseMenu(mCanvas);
             // Draw some text while paused
             drawPauseMessage(mCanvas);
-            // Added the start menu image
+            // Draw the start menu image
             drawStartMenu(mCanvas);
+            // Draw the game over image
+            drawGameOver(mCanvas);
 
             if (!mPaused){
                 // Display active buffs
@@ -496,6 +503,12 @@ class SnakeGame extends SurfaceView implements Runnable{
         }
     }
 
+    private void drawGameOver(Canvas canvas) {
+        if (isGameOver) {
+            canvas.drawBitmap(gOver, 0, 0, null);
+        }
+    }
+
     private void drawSetText(Canvas canvas){
         mPaint.setTypeface(mCustomFont);
         mPaint.setColor(Color.argb(255, 255, 255, 255));
@@ -606,6 +619,11 @@ class SnakeGame extends SurfaceView implements Runnable{
     private void initializeStartMenuImage(Context context, Point size) {
         mStart = BitmapFactory.decodeResource(context.getResources(), R.drawable.start_menu2);
         mStart = Bitmap.createScaledBitmap(mStart, size.x, size.y, false);
+    }
+
+    private void initializeGameOverImage(Context context, Point size) {
+        gOver = BitmapFactory.decodeResource(context.getResources(), R.drawable.game_over);
+        gOver = Bitmap.createScaledBitmap(mStart, size.x, size.y, false);
     }
 
     private void initializeBackGroundImage(Context context, Point size) {
