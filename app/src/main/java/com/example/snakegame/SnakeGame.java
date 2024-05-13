@@ -28,6 +28,7 @@ class SnakeGame extends SurfaceView implements Runnable{
     private volatile boolean mPaused = true;
     private boolean isNewGame = true;
     public boolean newStart = true;
+    public boolean sfxToggle = true;
 
     // for pause menu
     private volatile boolean mpauseMenu = false;
@@ -413,6 +414,7 @@ class SnakeGame extends SurfaceView implements Runnable{
                 if(mpauseMenu && mPaused) {
                     if (pauseMenuSFX.contains(x, y)) {
                         soundManager.muteSwitch();
+                        sfxToggle = !sfxToggle;
                         return true;
                     }
                     // Example: Assuming there's a rectangle on the screen representing the green color selection area
@@ -565,8 +567,13 @@ class SnakeGame extends SurfaceView implements Runnable{
             mPaint.setColor(Color.BLACK);
             mCanvas.drawText("Resume",500, 700, mPaint);
 
-            // draws quit button
-            mPaint.setColor(Color.argb(200, 255, 255, 255));
+            // draws sfx button
+            if(sfxToggle) {
+                mPaint.setColor(Color.argb(200, 0, 255, 0));
+            }
+            else {
+                mPaint.setColor(Color.argb(200, 255, 0, 0));
+            }
             mCanvas.drawRect(pauseMenuSFX, mPaint);
             mPaint.setColor(Color.BLACK);
             mCanvas.drawText("SFX",1200, 700, mPaint);
